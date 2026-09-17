@@ -69,6 +69,9 @@ nav.tabs button{border:0;background:transparent;border-radius:999px;padding:5px 
 nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper-2)}
 .spacer{flex:1}
 .theme{border:1px solid var(--line);background:var(--paper);border-radius:999px;width:34px;height:30px;color:var(--ink-2)}
+.langsw{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--paper)}
+.langsw button{border:0;background:transparent;padding:4px 11px;font-size:12px;color:var(--ink-3)}
+.langsw button[aria-pressed="true"]{background:var(--ink);color:var(--paper-2)}
 
 main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 .view{display:none}.view.on{display:block}
@@ -246,14 +249,15 @@ main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 </head>
 <body>
 <header>
-  <h1>単位のつながり帳<small>高校 理科（物理・化学・生物・地学）</small></h1>
+  <h1><span id="appTitle">単位のつながり帳</span><small id="appSub">高校 理科（物理・化学・生物・地学）</small></h1>
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-view="index">単位表</button>
     <button role="tab" aria-selected="false" data-view="builder">くみたてる</button>
     <button role="tab" aria-selected="false" data-view="quiz">クイズ</button>
   </nav>
   <span class="spacer"></span>
-  <button class="theme" id="themeBtn" title="表示を切り替える" aria-label="ライト／ダーク切り替え">◐</button>
+  <div class="langsw" id="langSw"><button data-lang="ja" aria-pressed="true">日本語</button><button data-lang="en" aria-pressed="false">English</button></div>
+  <button class="theme" id="themeBtn" aria-label="ライト／ダーク切り替え">◐</button>
 </header>
 
 <main>
@@ -262,24 +266,24 @@ main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
   <div class="index">
     <div>
       <div class="toolbar">
-        <div class="search"><span style="color:var(--ink-3)">⌕</span><input id="q" type="search" placeholder="記号・名前・量でさがす（例：N, ジュール, 圧力）" autocomplete="off"></div>
+        <div class="search"><span style="color:var(--ink-3)">⌕</span><input id="q" type="search" autocomplete="off"></div>
         <div class="chips" id="subjChips">
-          <button class="chip subj" data-s="物理" aria-pressed="false">物理</button>
-          <button class="chip subj" data-s="化学" aria-pressed="false">化学</button>
-          <button class="chip subj" data-s="生物" aria-pressed="false">生物</button>
-          <button class="chip subj" data-s="地学" aria-pressed="false">地学</button>
+          <button class="chip subj" data-s="物理" aria-pressed="false"></button>
+          <button class="chip subj" data-s="化学" aria-pressed="false"></button>
+          <button class="chip subj" data-s="生物" aria-pressed="false"></button>
+          <button class="chip subj" data-s="地学" aria-pressed="false"></button>
           <span class="count" id="count"></span>
         </div>
       </div>
       <div id="groups"></div>
       <details class="prefix">
-        <summary>接頭語（k, m, μ など）の早見表</summary>
+        <summary id="prefixSummary">接頭語（k, m, μ など）の早見表</summary>
         <table id="prefixTable"></table>
       </details>
     </div>
     <div class="backdrop" id="backdrop"></div>
     <aside class="detail" id="detail" aria-live="polite">
-      <div class="hint"><span class="u">N = kg·m/s<sup>2</sup></span>単位をひとつ選ぶと、その単位が<br>何からできていて、何をつくれるかが見えます。</div>
+      <div class="hint"><span class="u">N = kg·m/s<sup>2</sup></span><span id="hintText"></span></div>
     </aside>
   </div>
 </section>
@@ -288,32 +292,32 @@ main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 <section class="view" id="view-builder">
   <div class="builder">
     <div class="palette">
-      <p class="lead" style="margin:0 0 10px;font-size:13px;color:var(--ink-2)">単位をタップして式に入れます。同じ単位を2回入れると2乗になります。</p>
-      <div class="search" style="margin-bottom:10px"><span style="color:var(--ink-3)">⌕</span><input id="bq" type="search" placeholder="単位をさがす" autocomplete="off"></div>
+      <p class="lead" id="bLead" style="margin:0 0 10px;font-size:13px;color:var(--ink-2)"></p>
+      <div class="search" style="margin-bottom:10px"><span style="color:var(--ink-3)">⌕</span><input id="bq" type="search" autocomplete="off"></div>
       <div id="btiles" class="tiles"></div>
     </div>
     <div class="board">
-      <h2>単位をかけ合わせる</h2>
-      <p class="lead">かける（分子）か、わる（分母）かを選んでから単位を入れます。</p>
-      <div class="mode">入れる先：
-        <button id="modeNum" aria-pressed="true">× かける</button>
-        <button id="modeDen" aria-pressed="false">÷ わる</button>
+      <h2 id="bTitle"></h2>
+      <p class="lead" id="bSub"></p>
+      <div class="mode"><span id="addToLabel"></span>
+        <button id="modeNum" aria-pressed="true"></button>
+        <button id="modeDen" aria-pressed="false"></button>
         <span class="spacer"></span>
-        <button id="clearBtn" style="border-color:transparent;color:var(--ink-3)">クリア</button>
+        <button id="clearBtn" style="border-color:transparent;color:var(--ink-3)"></button>
       </div>
       <div class="frac">
-        <label>分子</label><div class="slot" id="numSlot"><span class="ph">まだ何も入っていません</span></div>
+        <label id="numLabel"></label><div class="slot" id="numSlot"></div>
         <span></span><div class="bar"></div>
-        <label>分母</label><div class="slot" id="denSlot"><span class="ph">わる単位があればここに</span></div>
+        <label id="denLabel"></label><div class="slot" id="denSlot"></div>
       </div>
       <div class="result">
-        <div class="rq">SI基本単位で書くと</div>
+        <div class="rq" id="rqLabel"></div>
         <div class="rexp" id="rexp">—</div>
         <div class="rq" id="rdim"></div>
         <div class="matches" id="matches"></div>
       </div>
       <div class="goal">
-        <h4>お題：この単位をつくってみよう</h4>
+        <h4 id="goalTitle"></h4>
         <div class="goals" id="goals"></div>
         <div class="verdict" id="verdict" hidden></div>
       </div>
@@ -327,7 +331,7 @@ main{max-width:1240px;margin:0 auto;padding:18px 16px 60px}
 </section>
 </main>
 
-<footer class="site-footer">制作：のざたん ／ <a href="https://meetupsensei.com">meetupsensei.com</a></footer>
+<footer class="site-footer"><span id="creditBy">制作：のざたん</span> ／ <a href="https://meetupsensei.com">meetupsensei.com</a></footer>
 
 <script>
 /* =========================================================
@@ -542,6 +546,168 @@ const UNITS = [
 const PREFIXES = [['T','テラ','10<sup>12</sup>'],['G','ギガ','10<sup>9</sup>'],['M','メガ','10<sup>6</sup>'],['k','キロ','10<sup>3</sup>'],['h','ヘクト','10<sup>2</sup>'],['d','デシ','10<sup>−1</sup>'],['c','センチ','10<sup>−2</sup>'],['m','ミリ','10<sup>−3</sup>'],['μ','マイクロ','10<sup>−6</sup>'],['n','ナノ','10<sup>−9</sup>'],['p','ピコ','10<sup>−12</sup>']];
 const FIELD_ORDER = ['基本単位','力学','熱','波・光','電磁気','原子','化学','生物','地学','天文'];
 
+/* ===== English data ===== */
+const FIELD_EN={'基本単位':'Base units','力学':'Mechanics','熱':'Thermal','波・光':'Waves & light','電磁気':'Electricity & magnetism','原子':'Atomic & nuclear','化学':'Chemistry','生物':'Biology','地学':'Earth science','天文':'Astronomy'};
+const SUBJ_EN={'物理':'Physics','化学':'Chemistry','生物':'Biology','地学':'Earth science','基本':'Base'};
+const PREFIX_EN={'テラ':'tera','ギガ':'giga','メガ':'mega','キロ':'kilo','ヘクト':'hecto','デシ':'deci','センチ':'centi','ミリ':'milli','マイクロ':'micro','ナノ':'nano','ピコ':'pico'};
+const EN={
+m:{name:'metre',qty:'length',note:'The base unit of length, defined by the distance light travels in 1/299 792 458 of a second.'},
+kg:{name:'kilogram',qty:'mass',note:'The base unit of mass, and the only one whose name already carries a prefix (k). Mass is how hard something is to accelerate, not its weight.'},
+s:{name:'second',qty:'time',note:'The base unit of time, defined by the vibration of a caesium atom.'},
+A:{name:'ampere',qty:'electric current',note:'One coulomb of charge passing per second. Note that current, not charge, was chosen as the base unit.'},
+K:{name:'kelvin',qty:'absolute temperature',note:'0 K is absolute zero. One kelvin step is the same size as one degree Celsius, so T [K] = t [°C] + 273.'},
+mol:{name:'mole',qty:'amount of substance',note:'A collection of 6.02×10²³ particles. It sits at the centre of chemical calculation.'},
+cd:{name:'candela',qty:'luminous intensity',note:'How bright a light source is. It rarely appears in high school problems, but it is one of the seven base units.'},
+m2:{name:'square metre',qty:'area',note:'Length × length. It appears in the denominator of pressure (Pa = N/m²) and magnetic flux density (T = Wb/m²).'},
+m3:{name:'cubic metre',qty:'volume',note:'Length cubed. 1 m³ = 1000 L. Use this unit for V in pV = nRT.'},
+m_s:{name:'metre per second',qty:'speed, velocity',note:'Distance covered in one second. "Per second" simply means "÷ s".'},
+m_s2:{name:'metre per second squared',qty:'acceleration',note:'How much the velocity (m/s) changes each second. Gravitational acceleration g = 9.8 m/s².'},
+kg_m3:{name:'kilogram per cubic metre',qty:'density',note:'Mass per volume. Water is about 1.0×10³ kg/m³ (= 1.0 g/cm³).'},
+N:{name:'newton',qty:'force',note:'The force that gives a 1 kg object an acceleration of 1 m/s². The equation of motion F = ma is itself the definition of the unit.'},
+Nm:{name:'newton metre',qty:'torque (moment of force)',note:'Force × lever arm. It has the same dimensions as the joule, but it turns things rather than storing energy, so it is written N·m.'},
+J:{name:'joule',qty:'energy, work, heat',note:'The work done by a force of 1 N over 1 m. It links mechanics, heat and electricity, which is why it can be built in so many ways.'},
+W:{name:'watt',qty:'power',note:'Energy per second. Mechanical power (J/s) and electrical power (V·A) turn out to be the same unit.'},
+Pa:{name:'pascal',qty:'pressure',note:'A force of 1 N spread over 1 m². Atmospheric pressure is about 1.013×10⁵ Pa (= 1013 hPa = 1 atm).'},
+Hz:{name:'hertz',qty:'frequency',note:'Vibrations per second — the reciprocal of the period T [s].'},
+kgm_s:{name:'kilogram metre per second',qty:'momentum',note:'Mass × velocity. It shares its dimensions with impulse (N·s), so "impulse = change in momentum" is visible in the units themselves.'},
+Ns:{name:'newton second',qty:'impulse',note:'Force × time. Same dimensions as momentum, kg·m/s.'},
+N_m:{name:'newton per metre',qty:'spring constant',note:'The force needed to stretch a spring by 1 m. It also turns up in surface tension.'},
+rad:{name:'radian',qty:'angle',note:'Arc length ÷ radius. Length over length, so it has no dimensions. Used for circular motion, oscillation and wave phase.'},
+rad_s:{name:'radian per second',qty:'angular velocity',note:'The angle swept out each second. Its link to frequency is ω = 2πf.'},
+W_m2:{name:'watt per square metre',qty:'energy flux (solar constant, sound intensity)',note:'Energy passing through 1 m² each second. The solar constant is about 1.37×10³ W/m².'},
+J_K:{name:'joule per kelvin',qty:'heat capacity',note:'The heat needed to raise the whole object by 1 K.'},
+J_kgK:{name:'joule per kilogram kelvin',qty:'specific heat',note:'The heat needed to raise 1 kg of a substance by 1 K. Water is about 4.2×10³ J/(kg·K).'},
+J_gK:{name:'joule per gram kelvin',qty:'specific heat (chemistry style)',note:'Chemistry usually works in grams. The specific heat of water, 4.2 J/(g·K), is the same value as 4.2×10³ J/(kg·K).'},
+J_molK:{name:'joule per mole kelvin',qty:'gas constant, molar heat capacity',note:'The gas constant R = 8.31 J/(mol·K) falls out of matching the units on both sides of pV = nRT.'},
+degC:{name:'degree Celsius',qty:'temperature',note:'Water freezes at 0 and boils at 100. The step size matches the kelvin, so a temperature difference is the same number in °C and K.'},
+cal:{name:'calorie',qty:'heat',note:'The heat that raises 1 g of water by 1 K. The joule is the standard unit today.'},
+kcal:{name:'kilocalorie',qty:'food energy',note:'Used on food labels. A day\'s intake is around 2000 kcal.'},
+kWh:{name:'kilowatt hour',qty:'electrical energy',note:'The energy used by 1 kW running for one hour — the unit on an electricity bill.'},
+C:{name:'coulomb',qty:'electric charge',note:'The charge carried by a current of 1 A in one second. One electron carries 1.6×10⁻¹⁹ C.'},
+V:{name:'volt',qty:'potential, voltage, emf',note:'The potential difference that takes 1 J of work to move 1 C of charge. Remember "voltage is energy ÷ charge" and J/C comes out naturally.'},
+V_m:{name:'volt per metre',qty:'electric field strength',note:'How much the potential changes per metre. Identical to N/C.'},
+N_C:{name:'newton per coulomb',qty:'electric field strength',note:'The force felt by a charge of 1 C. Exactly the same dimensions as V/m — only the way of defining it differs.'},
+ohm:{name:'ohm',qty:'electrical resistance',note:'A resistance that passes 1 A when 1 V is applied. Ohm\'s law V = RI is the definition.'},
+ohmm:{name:'ohm metre',qty:'resistivity',note:'How hard a material makes it for current to flow — the ρ in R = ρl/S.'},
+F:{name:'farad',qty:'capacitance',note:'A capacitance that stores 1 C at 1 V. Real capacitors are usually μF or pF.'},
+T:{name:'tesla',qty:'magnetic flux density',note:'A field that pushes a 1 m wire carrying 1 A with a force of 1 N. F = IBl gives N/(A·m).'},
+Wb:{name:'weber',qty:'magnetic flux',note:'Flux density × area. Faraday\'s law V = −ΔΦ/Δt also lets you write it as V·s.'},
+H:{name:'henry',qty:'inductance',note:'How strongly a coil opposes a change in current. V = −L ΔI/Δt gives V·s/A.'},
+A_m:{name:'ampere per metre',qty:'magnetic field strength',note:'The strength of the field a current creates. Inside a solenoid, H = nI, where n is turns per metre.'},
+eV:{name:'electronvolt',qty:'energy (atomic scale)',note:'The energy an electron gains when accelerated through 1 V. A convenient size for atomic energy levels.'},
+u:{name:'unified atomic mass unit',qty:'mass (atomic scale)',note:'One twelfth of the mass of a carbon-12 atom — the basis of atomic mass.'},
+Bq:{name:'becquerel',qty:'radioactivity',note:'One nucleus decaying per second. Its dimensions match the hertz, but the quantity means something different, so it has its own name.'},
+Gy:{name:'gray',qty:'absorbed dose',note:'The radiation energy absorbed by 1 kg of material.'},
+Sv:{name:'sievert',qty:'equivalent dose',note:'Dose weighted for its effect on the body. Same J/kg as the gray, but multiplied by a factor for the type of radiation.'},
+nm:{name:'nanometre',qty:'length (light, molecules)',note:'Visible light runs from 400 to 700 nm. DNA is about 2 nm across.'},
+um:{name:'micrometre',qty:'length (cells)',note:'The scale of cells: a red blood cell is about 8 μm, E. coli about 2 μm.'},
+mm:{name:'millimetre',qty:'length (rainfall)',note:'Rainfall is reported as the depth of water collected, in mm.'},
+cm:{name:'centimetre',qty:'length',note:'1 cm³ = 1 mL, a relation used constantly in chemistry and biology.'},
+km:{name:'kilometre',qty:'length',note:'The Earth\'s radius is about 6400 km. Earthquake depths use this unit too.'},
+km_h:{name:'kilometre per hour',qty:'speed (everyday, weather)',note:'Typhoon and vehicle speeds. Divide by 3.6 to get m/s.'},
+g:{name:'gram',qty:'mass',note:'Almost all chemistry is done in grams. Multiply by 10⁻³ to get kilograms.'},
+L:{name:'litre',qty:'volume',note:'A cube 10 cm on a side. One mole of gas at standard conditions occupies 22.4 L.'},
+mL:{name:'millilitre',qty:'volume',note:'1 mL = 1 cm³ — the markings on a measuring cylinder or pipette.'},
+g_cm3:{name:'gram per cubic centimetre',qty:'density',note:'Water 1.0, iron 7.9, crustal rock 2.7–3.0 g/cm³.'},
+min:{name:'minute',qty:'time',note:'Heart rate (beats per minute) and reaction rates often use it.'},
+h:{name:'hour',qty:'time',note:'Hidden inside kWh and km/h.'},
+day:{sym:'d',name:'day',qty:'time',note:'One rotation of the Earth. Biological circadian rhythms run on the same cycle.'},
+yr:{sym:'y',name:'year',qty:'time',note:'Geological time is counted in millions and billions of years. Half-lives are often quoted in years.'},
+atm:{name:'atmosphere',qty:'pressure',note:'Average air pressure at sea level, taken as 1. Sometimes used in the gas equation in chemistry.'},
+hPa:{name:'hectopascal',qty:'pressure (weather)',note:'Isobars on a weather map are drawn every 4 hPa. A typhoon centre is around 950 hPa.'},
+mmHg:{name:'millimetre of mercury',qty:'pressure (blood, vapour)',note:'Blood pressure (120/80 mmHg). Vapour pressure tables in chemistry use it as well.'},
+mol_L:{name:'mole per litre',qty:'molar concentration',note:'Moles of solute in 1 L of solution — the basis of titration calculations.'},
+g_mol:{name:'gram per mole',qty:'molar mass',note:'The mass of one mole. It is the atomic or molecular mass with g/mol attached.'},
+L_mol:{name:'litre per mole',qty:'molar volume',note:'One mole of gas at standard conditions occupies 22.4 L/mol.'},
+mol_kg:{name:'mole per kilogram',qty:'molality',note:'Moles of solute per 1 kg of solvent, used for boiling point elevation and freezing point depression. Note the denominator is solvent mass, not solution volume.'},
+kJ_mol:{name:'kilojoule per mole',qty:'reaction enthalpy, bond energy',note:'Heat of reaction per mole, written for example as ΔH = −286 kJ/mol.'},
+C_mol:{name:'coulomb per mole',qty:'Faraday constant',note:'The charge carried by one mole of electrons: F = 9.65×10⁴ C/mol, used in electrolysis.'},
+per_mol:{name:'per mole',qty:'Avogadro constant',note:'Number of particles per mole: N_A = 6.02×10²³ /mol.'},
+pct:{name:'percent',qty:'ratio (mass percent, humidity)',note:'Parts per hundred. Dimensionless — used for mass percent concentration, relative humidity, transmittance.'},
+ppm:{name:'parts per million',qty:'ratio',note:'Parts per million, used for atmospheric CO₂ (about 420 ppm). Dimensionless.'},
+permil:{name:'per mille',qty:'ratio (salinity)',note:'Parts per thousand. Seawater salinity is about 35 ‰. Dimensionless.'},
+mg_dL:{name:'milligram per decilitre',qty:'concentration (blood sugar)',note:'Mass per 100 mL of blood. Normal blood sugar is around 100 mg/dL.'},
+sr:{name:'steradian',qty:'solid angle',note:'Area on a sphere ÷ radius². Dimensionless, and used to define the lumen.'},
+lm:{name:'lumen',qty:'luminous flux',note:'The total light coming out of a source — the number printed on an LED bulb box.'},
+lx:{name:'lux',qty:'illuminance',note:'How brightly a surface is lit. Used to set light intensity in photosynthesis experiments. Outdoors on a clear day is about 100 000 lx.'},
+Gal:{name:'gal',qty:'ground acceleration',note:'Earthquake shaking expressed as acceleration. Gravity is about 980 Gal.'},
+au:{name:'astronomical unit',qty:'length (solar system)',note:'The mean Sun–Earth distance, convenient for distances inside the solar system.'},
+ly:{sym:'ly',name:'light-year',qty:'length (stars, galaxies)',note:'The distance light travels in one year. It measures length, not time.',conv:'1 ly = 9.46×10<sup>15</sup> m'},
+pc:{name:'parsec',qty:'length (stars, galaxies)',note:'The distance at which the annual parallax is one arcsecond.',conv:'1 pc = 3.26 ly = 3.09×10<sup>16</sup> m'},
+pH:{name:'pH',qty:'acidity index',note:'Not a unit but a logarithmic scale: pH = −log₁₀[H⁺]. A difference of 1 means a factor of 10 in [H⁺].'},
+M:{name:'magnitude',qty:'earthquake size',note:'Not a unit but a logarithmic scale. One step up is about 32 times the energy; two steps, about 1000 times.'},
+shindo:{sym:'Shindo',name:'JMA seismic intensity',qty:'strength of shaking',note:'Not a unit but a 10-step scale from 0 to 7. It describes shaking at a place, while magnitude describes the earthquake itself.'},
+mag:{sym:'mag',name:'stellar magnitude',qty:'brightness of a star',note:'Not a unit but a scale. Five magnitudes smaller means 100 times brighter (about 2.5 times per magnitude).'}
+};
+EN.yr.conv='1 y ≒ 3.15×10<sup>7</sup> s';
+EN.day.conv='1 d = 86 400 s';
+
+let LANG='ja';
+try{ LANG=localStorage.getItem('unitmap-lang')||'ja'; }catch(e){}
+const e_=u=>EN[u.id]||{};
+const uSym=u=>(LANG==='en'&&e_(u).sym)?e_(u).sym:u.sym;
+const uName=u=>(LANG==='en'&&e_(u).name)?e_(u).name:u.name;
+const uQty=u=>(LANG==='en'&&e_(u).qty)?e_(u).qty:u.qty;
+const uNote=u=>(LANG==='en'&&e_(u).note)?e_(u).note:u.note;
+const uConv=u=>(LANG==='en'&&e_(u).conv)?e_(u).conv:u.conv;
+const uField=u=>LANG==='en'?(FIELD_EN[u.field]||u.field):u.field;
+const uSubj=s=>LANG==='en'?(SUBJ_EN[s]||s):s;
+
+const UI={
+ja:{title:'単位のつながり帳',sub:'高校 理科（物理・化学・生物・地学）',tabIndex:'単位表',tabBuild:'くみたてる',tabQuiz:'クイズ',
+ searchPh:'記号・名前・量でさがす（例：N, ジュール, 圧力）',hint:'単位をひとつ選ぶと、その単位が<br>何からできていて、何をつくれるかが見えます。',
+ notFound:'見つかりませんでした。記号（N）や量の名前（圧力）で試してみてください。',
+ prefixes:'接頭語（k, m, μ など）の早見表',scaleTag:'目盛り',
+ madeFrom:'何からできているか',makes:'何をつくれるか',
+ baseNone:'これ以上分けられない<b>基本単位</b>。7 つの基本単位のひとつ。',scaleNone:'単位ではなく目盛り（スケール）。次元はない。',
+ nonsiNone:(d,c)=>`SI基本単位で書くと ${d}。<br>換算：${c||''}`,
+ noUsers:'この帳の中では、この単位を材料にする単位はありません。',
+ howBuilt:'組み立て方',ways:n=>`（${n} 通り）`,inSI:'SI基本単位で書くと',conv:'換算',sameDim:'同じ次元をもつ単位',formulas:'この単位が出てくる式',notes:'メモ',
+ tagBase:'SI基本単位',tagDerived:'SI組立単位',tagScale:'単位ではない',tagNonsi:'SI以外',
+ bLead:'単位をタップして式に入れます。同じ単位を2回入れると2乗になります。',bSearchPh:'単位をさがす',
+ bTitle:'単位をかけ合わせる',bSub:'かける（分子）か、わる（分母）かを選んでから単位を入れます。',
+ addTo:'入れる先：',mul:'× かける',div:'÷ わる',clear:'クリア',num:'分子',den:'分母',
+ numPh:'まだ何も入っていません',denPh:'わる単位があればここに',
+ inSIShort:'SI基本単位で書くと',matchTitle:'この次元をもつ単位',noMatch:'この次元に名前のついた単位は、この帳にはありません。別の組み合わせを試してみましょう。',
+ goalTitle:'お題：この単位をつくってみよう',goalOk:(s,d)=>`できた！ <span class="u">${s}</span> = ${d}`,goalNg:(s,d)=>`まだ <span class="u">${s}</span> ではありません。目標は ${d}`,
+ coefAside:'（係数は別）',dimless:'（無次元）',
+ qTitle:'単位クイズ',qLead:'10 問。記号・組み立て方・かけ算わり算の 3 種類が混ざって出ます。',qSubjNote:'教科を選ばなければ全範囲から出題します。',
+ qStart:'はじめる',qBest:n=>`これまでの最高：${n} / 10`,qNum:(i,n)=>`第 ${i} 問 / ${n}`,qScore:n=>`正解 ${n}`,
+ qNext:'次へ',qSeeResult:'結果を見る',qQuit:'やめる',qCorrect:'正解。',qWrong:'惜しい。',
+ qtSym:'記号を選ぶ',qtBuild:'組み立て方を選ぶ',qtCombine:'かけ算・わり算',
+ qSymQ:(n,q)=>`「${n}」（${q}）の記号は？`,qBuildQ:(s,q)=>`<span class="u">${s}</span>（${q}）を基本単位で表すと？`,
+ qMulQ:(a,b)=>`<span class="u">${a}</span> × <span class="u">${b}</span> はどの単位？`,qDivQ:(a,b)=>`<span class="u">${a}</span> ÷ <span class="u">${b}</span> はどの単位？`,
+ qResult:'結果',qMsg:['まず「くみたてる」で N・J・W・V をつくってみると、つながりが見えてきます。','いい調子。間違えた単位を「単位表」でもう一度たどってみよう。','全問正解。単位のつながりが見えています。'],
+ qBestShort:n=>`最高：${n} / 10`,qAgain:'もう一度',qToIndex:'単位表へ',close:'閉じる',credit:'制作：のざたん',themeLabel:'ライト／ダーク切り替え'},
+en:{title:'Unit Connections',sub:'High school science — physics, chemistry, biology, earth science',tabIndex:'Units',tabBuild:'Build',tabQuiz:'Quiz',
+ searchPh:'Search by symbol, name or quantity (e.g. N, joule, pressure)',hint:'Pick a unit to see what it is<br>made of, and what it helps to make.',
+ notFound:'Nothing found. Try a symbol (N) or a quantity (pressure).',
+ prefixes:'SI prefixes (k, m, μ and the rest)',scaleTag:'scale',
+ madeFrom:'Made from',makes:'Used to make',
+ baseNone:'A <b>base unit</b> — it cannot be broken down further. One of the seven SI base units.',scaleNone:'Not a unit but a scale. It has no dimensions.',
+ nonsiNone:(d,c)=>`In SI base units: ${d}.<br>Conversion: ${c||''}`,
+ noUsers:'No unit in this collection is built from it.',
+ howBuilt:'How it is built',ways:n=>` (${n} ways)`,inSI:'In SI base units',conv:'Conversion',sameDim:'Units with the same dimensions',formulas:'Formulas it appears in',notes:'Notes',
+ tagBase:'SI base unit',tagDerived:'SI derived unit',tagScale:'not a unit',tagNonsi:'non-SI',
+ bLead:'Tap a unit to put it into the expression. Tap the same unit twice to square it.',bSearchPh:'Search units',
+ bTitle:'Multiply units together',bSub:'Choose multiply (top) or divide (bottom) first, then tap a unit.',
+ addTo:'Add to:',mul:'× multiply',div:'÷ divide',clear:'Clear',num:'Top',den:'Bottom',
+ numPh:'Nothing here yet',denPh:'Units you divide by go here',
+ inSIShort:'In SI base units',matchTitle:'Units with these dimensions',noMatch:'No named unit in this collection has these dimensions. Try another combination.',
+ goalTitle:'Challenge: build this unit',goalOk:(s,d)=>`You built it. <span class="u">${s}</span> = ${d}`,goalNg:(s,d)=>`Not <span class="u">${s}</span> yet. The target is ${d}`,
+ coefAside:' (different factor)',dimless:' (dimensionless)',
+ qTitle:'Unit quiz',qLead:'Ten questions mixing symbols, SI base units, and multiplying and dividing.',qSubjNote:'Choose no subject to draw from everything.',
+ qStart:'Start',qBest:n=>`Your best so far: ${n} / 10`,qNum:(i,n)=>`Question ${i} of ${n}`,qScore:n=>`Score ${n}`,
+ qNext:'Next',qSeeResult:'See result',qQuit:'Quit',qCorrect:'Correct.',qWrong:'Not quite.',
+ qtSym:'Symbol',qtBuild:'SI base units',qtCombine:'Multiply and divide',
+ qSymQ:(n,q)=>`Which symbol means “${n}” (${q})?`,qBuildQ:(s,q)=>`Which is <span class="u">${s}</span> (${q}) in SI base units?`,
+ qMulQ:(a,b)=>`Which unit is <span class="u">${a}</span> × <span class="u">${b}</span>?`,qDivQ:(a,b)=>`Which unit is <span class="u">${a}</span> ÷ <span class="u">${b}</span>?`,
+ qResult:'Result',qMsg:['Start with the Build tab and make N, J, W and V — the connections show up quickly.','Good going. Trace the units you missed again in the Units tab.','All ten. You can see how the units connect.'],
+ qBestShort:n=>`Best: ${n} / 10`,qAgain:'Try again',qToIndex:'Back to units',close:'Close',credit:'Made by Nozatan',themeLabel:'Switch light / dark'}
+};
+const T=k=>UI[LANG][k];
+
+
 /* ===== 次元計算 ===== */
 const byId = Object.fromEntries(UNITS.map(u=>[u.id,u]));
 function dimOf(u){
@@ -557,7 +723,7 @@ const sup = n => n===1?'':`<sup>${n<0?'−':''}${Math.abs(n)}</sup>`;
 function fmtDim(d){
   const num=[],den=[];
   for(const k of BASE_ORDER){ const e=d[k]||0; if(e>0) num.push(k+sup(e)); else if(e<0) den.push(k+sup(-e)); }
-  if(!num.length && !den.length) return '<span class="u">1</span>（無次元）';
+  if(!num.length && !den.length) return '<span class="u">1</span>'+T('dimless');
   let s = num.length? num.join('·') : '1';
   if(den.length) s += '/' + (den.length>1?'('+den.join('·')+')':den[0]);
   return `<span class="u">${s}</span>`;
@@ -569,8 +735,8 @@ function fmtBracket(d){
 function fmtForm(form, clickable){
   const num=[],den=[];
   for(const [id,e] of form){
-    const u=byId[id]; const compound=/[\/·]/.test(u.sym);
-    let s = (compound && Math.abs(e)!==1) ? '('+u.sym+')' : u.sym;
+    const u=byId[id]; const sy=uSym(u); const compound=/[\/·]/.test(sy);
+    let s = (compound && Math.abs(e)!==1) ? '('+sy+')' : sy;
     s += sup(Math.abs(e));
     s = clickable ? `<button class="tok" data-go="${id}">${s}</button>` : s;
     (e>0?num:den).push(s);
@@ -582,7 +748,7 @@ function fmtForm(form, clickable){
 const sameDim = u => UNITS.filter(v=>v!==u && v.kind!=='scale' && dimKey(dimOf(v))===dimKey(dimOf(u)));
 const usedIn = u => UNITS.filter(v=>v!==u && v.forms && v.forms.some(f=>f.some(([id])=>id===u.id)));
 const mainSubj = u => u.subj[0];
-const searchText = u => (u.plain||u.sym).replace(/<[^>]+>/g,'')+' '+u.name+' '+u.qty+' '+u.subj.join(' ')+' '+u.field;
+const searchText = u => { const e=EN[u.id]||{}; return ((u.plain||u.sym)+' '+(e.sym||'')+' '+u.name+' '+u.qty+' '+(e.name||'')+' '+(e.qty||'')+' '+u.subj.join(' ')+' '+u.subj.map(x=>SUBJ_EN[x]||'').join(' ')+' '+u.field+' '+(FIELD_EN[u.field]||'')).replace(/<[^>]+>/g,''); };
 
 /* ===== ビュー切替 ===== */
 document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
@@ -611,7 +777,7 @@ document.querySelectorAll('#subjChips .chip').forEach(c=>c.addEventListener('cli
 qInput.addEventListener('input',renderIndex);
 function tileHTML(u, extra=''){
   return `<button class="tile ${u.kind==='base'?'base':''} ${u.id===selectedId?'sel':''}" data-s="${mainSubj(u)}" data-id="${u.id}" ${extra}>
-    <span class="sym u">${u.sym}</span><span class="qty">${u.qty}</span>${u.kind==='scale'?'<span class="scale">目盛り</span>':''}</button>`;
+    <span class="sym u">${uSym(u)}</span><span class="qty">${uQty(u)}</span>${u.kind==='scale'?`<span class="scale">${T('scaleTag')}</span>`:''}</button>`;
 }
 function filtered(q){
   q=(q||'').trim().toLowerCase();
@@ -624,9 +790,9 @@ function filtered(q){
 function renderIndex(){
   const list=filtered(qInput.value);
   countEl.textContent=`${list.length} / ${UNITS.length}`;
-  if(!list.length){ groupsEl.innerHTML='<p class="empty">見つかりませんでした。記号（N）や量の名前（圧力）で試してみてください。</p>'; return; }
+  if(!list.length){ groupsEl.innerHTML=`<p class="empty">${T('notFound')}</p>`; return; }
   const groups={}; list.forEach(u=>(groups[u.field]=groups[u.field]||[]).push(u));
-  groupsEl.innerHTML = FIELD_ORDER.filter(f=>groups[f]).map(f=>`<div class="group"><h3>${f}</h3><div class="tiles">${groups[f].map(u=>tileHTML(u)).join('')}</div></div>`).join('');
+  groupsEl.innerHTML = FIELD_ORDER.filter(f=>groups[f]).map(f=>`<div class="group"><h3>${LANG==='en'?(FIELD_EN[f]||f):f}</h3><div class="tiles">${groups[f].map(u=>tileHTML(u)).join('')}</div></div>`).join('');
 }
 groupsEl.addEventListener('click',e=>{ const t=e.target.closest('.tile'); if(t) selectUnit(t.dataset.id); });
 
@@ -637,29 +803,29 @@ function selectUnit(id, fromTok){
   const makers = u.forms ? u.forms[0] : null;
   const users = usedIn(u); const same = sameDim(u);
   const leftHTML = u.kind==='base'
-    ? `<p class="none">これ以上分けられない<b>基本単位</b>。7 つの基本単位のひとつ。</p>`
+    ? `<p class="none">${T('baseNone')}</p>`
     : u.kind==='scale'
-    ? `<p class="none">単位ではなく目盛り（スケール）。次元はない。</p>`
+    ? `<p class="none">${T('scaleNone')}</p>`
     : makers
-    ? makers.map(([mid,e])=>`<button class="link" data-go="${mid}"><span class="u">${byId[mid].sym}${sup(Math.abs(e))}</span><small>${byId[mid].qty}${e<0?'（÷）':''}</small></button>`).join('')
-    : `<p class="none">SI基本単位で書くと ${fmtDim(d)}。<br>換算：${u.conv||''}</p>`;
+    ? makers.map(([mid,e])=>`<button class="link" data-go="${mid}"><span class="u">${uSym(byId[mid])}${sup(Math.abs(e))}</span><small>${uQty(byId[mid])}${e<0?' (÷)':''}</small></button>`).join('')
+    : `<p class="none">${T('nonsiNone')(fmtDim(d),uConv(u))}</p>`;
   const rightHTML = users.length
-    ? users.slice(0,8).map(v=>{ const f=v.forms.find(f=>f.some(([id])=>id===u.id)); const ff=fmtForm(f,false); const eq = ff===v.sym ? '' : ` = <span class="u">${ff}</span>`; return `<button class="link" data-go="${v.id}"><span class="u">${v.sym}</span>${eq}<small>${v.qty}</small></button>`; }).join('')
-    : `<p class="none">この帳の中では、この単位を材料にする単位はありません。</p>`;
+    ? users.slice(0,8).map(v=>{ const f=v.forms.find(f=>f.some(([id])=>id===u.id)); const ff=fmtForm(f,false); const eq = ff===uSym(v) ? '' : ` = <span class="u">${ff}</span>`; return `<button class="link" data-go="${v.id}"><span class="u">${uSym(v)}</span>${eq}<small>${uQty(v)}</small></button>`; }).join('')
+    : `<p class="none">${T('noUsers')}</p>`;
   detail.innerHTML = `
-    <button class="close" aria-label="閉じる">✕</button>
-    <div class="subjline">${u.subj.filter(s=>s!=='基本').map(s=>`<span class="tag" data-s="${s}">${s}</span>`).join('')}<span class="tag">${u.field}</span>${u.kind==='base'?'<span class="tag">SI基本単位</span>':u.kind==='derived'?'<span class="tag">SI組立単位</span>':u.kind==='scale'?'<span class="tag">単位ではない</span>':'<span class="tag">SI以外</span>'}</div>
+    <button class="close" aria-label="${T('close')}">✕</button>
+    <div class="subjline">${u.subj.filter(s=>s!=='基本').map(s=>`<span class="tag" data-s="${s}">${uSubj(s)}</span>`).join('')}<span class="tag">${uField(u)}</span><span class="tag">${u.kind==='base'?T('tagBase'):u.kind==='derived'?T('tagDerived'):u.kind==='scale'?T('tagScale'):T('tagNonsi')}</span></div>
     <div class="flow">
-      <div class="side left"><h4>何からできているか</h4>${leftHTML}</div>
-      <div class="center"><span class="big u">${u.sym}</span><div class="name">${u.name}</div><div class="qty">${u.qty}</div></div>
-      <div class="side right"><h4>何をつくれるか</h4>${rightHTML}</div>
+      <div class="side left"><h4>${T('madeFrom')}</h4>${leftHTML}</div>
+      <div class="center"><span class="big u">${uSym(u)}</span><div class="name">${uName(u)}</div><div class="qty">${uQty(u)}</div></div>
+      <div class="side right"><h4>${T('makes')}</h4>${rightHTML}</div>
     </div>
-    ${u.forms && u.forms.length ? `<div class="sec"><h4>組み立て方${u.forms.length>1?'（'+u.forms.length+' 通り）':''}</h4>${u.forms.map(f=>`<div class="eq"><span class="u">${u.sym}</span> = ${fmtForm(f,true)}</div>`).join('')}</div>`:''}
-    ${u.kind!=='scale' ? `<div class="sec"><h4>SI基本単位で書くと</h4><div class="dimrow">${fmtDim(d)} ${fmtBracket(d)}</div></div>`:''}
-    ${u.conv ? `<div class="sec"><h4>換算</h4><p class="conv u">${u.conv}</p></div>`:''}
-    ${same.length ? `<div class="sec"><h4>同じ次元をもつ単位</h4><div class="chips">${same.map(v=>`<button class="chip" data-go="${v.id}"><span class="u">${v.sym}</span>　${v.qty}</button>`).join('')}</div></div>`:''}
-    ${u.formulas ? `<div class="sec"><h4>この単位が出てくる式</h4><div class="formulas">${u.formulas.map(f=>`<span class="formula">${f}</span>`).join('')}</div></div>`:''}
-    <div class="sec"><h4>メモ</h4><p class="note">${u.note}</p></div>
+    ${u.forms && u.forms.length ? `<div class="sec"><h4>${T('howBuilt')}${u.forms.length>1?T('ways')(u.forms.length):''}</h4>${u.forms.map(f=>`<div class="eq"><span class="u">${uSym(u)}</span> = ${fmtForm(f,true)}</div>`).join('')}</div>`:''}
+    ${u.kind!=='scale' ? `<div class="sec"><h4>${T('inSI')}</h4><div class="dimrow">${fmtDim(d)} ${fmtBracket(d)}</div></div>`:''}
+    ${uConv(u) ? `<div class="sec"><h4>${T('conv')}</h4><p class="conv u">${uConv(u)}</p></div>`:''}
+    ${same.length ? `<div class="sec"><h4>${T('sameDim')}</h4><div class="chips">${same.map(v=>`<button class="chip" data-go="${v.id}"><span class="u">${uSym(v)}</span>　${uQty(v)}</button>`).join('')}</div></div>`:''}
+    ${u.formulas ? `<div class="sec"><h4>${T('formulas')}</h4><div class="formulas">${u.formulas.map(f=>`<span class="formula">${f}</span>`).join('')}</div></div>`:''}
+    <div class="sec"><h4>${T('notes')}</h4><p class="note">${uNote(u)}</p></div>
   `;
   detail.classList.add('open'); backdrop.classList.add('on');
   if(!fromTok) detail.scrollTop=0;
@@ -671,8 +837,8 @@ detail.addEventListener('click',e=>{
 backdrop.addEventListener('click',closeDetail);
 function closeDetail(){ detail.classList.remove('open'); backdrop.classList.remove('on'); }
 
-document.getElementById('prefixTable').innerHTML = PREFIXES.map(([s,n,v])=>`<tr><td class="u">${s}</td><td>${n}</td><td class="u p">${v}</td></tr>`).join('');
-renderIndex();
+function renderPrefix(){ document.getElementById('prefixTable').innerHTML = PREFIXES.map(([s,n,v])=>`<tr><td class="u">${s}</td><td>${LANG==='en'?(PREFIX_EN[n]||n):n}</td><td class="u p">${v}</td></tr>`).join(''); }
+renderPrefix(); renderIndex();
 
 /* ===== くみたてる ===== */
 const bq=document.getElementById('bq'); const btiles=document.getElementById('btiles');
@@ -694,9 +860,9 @@ document.getElementById('clearBtn').addEventListener('click',()=>{ for(const k i
 function addPiece(id,sign){ expr[id]=(expr[id]||0)+sign; if(expr[id]===0) delete expr[id]; renderBuilder(); }
 function renderBuilder(){
   const num=Object.entries(expr).filter(([,e])=>e>0), den=Object.entries(expr).filter(([,e])=>e<0);
-  const piece=([id,e])=>`<span class="piece"><span class="u">${byId[id].sym}${sup(Math.abs(e))}</span><button data-flip="${id}" title="分子↔分母">⇅</button><button data-rm="${id}" title="外す">✕</button></span>`;
-  numSlot.innerHTML = num.length? num.map(piece).join('') : '<span class="ph">まだ何も入っていません</span>';
-  denSlot.innerHTML = den.length? den.map(piece).join('') : '<span class="ph">わる単位があればここに</span>';
+  const piece=([id,e])=>`<span class="piece"><span class="u">${uSym(byId[id])}${sup(Math.abs(e))}</span><button data-flip="${id}" title="⇅">⇅</button><button data-rm="${id}" title="✕">✕</button></span>`;
+  numSlot.innerHTML = num.length? num.map(piece).join('') : `<span class="ph">${T('numPh')}</span>`;
+  denSlot.innerHTML = den.length? den.map(piece).join('') : `<span class="ph">${T('denPh')}</span>`;
   const d={}; for(const id in expr){ const dd=dimOf(byId[id]); for(const k in dd){ d[k]=(d[k]||0)+dd[k]*expr[id]; if(d[k]===0) delete d[k]; } }
   const has=Object.keys(expr).length;
   document.getElementById('rexp').innerHTML = has? fmtDim(d) : '—';
@@ -706,16 +872,16 @@ function renderBuilder(){
   const matches = has? UNITS.filter(u=>u.kind!=='scale' && dimKey(dimOf(u))===key && !(Object.keys(expr).length===1 && expr[u.id]===1)).sort((a,b)=>rank[a.kind]-rank[b.kind]) : [];
   const ml=document.getElementById('matches');
   if(!has) ml.innerHTML='';
-  else if(!matches.length) ml.innerHTML='<p class="rq">この次元に名前のついた単位は、この帳にはありません。別の組み合わせを試してみましょう。</p>';
-  else ml.innerHTML = `<p class="rq">この次元をもつ単位</p>` + matches.map(u=>`<button class="match" data-open="${u.id}"><span class="u">${u.sym}</span><span><span class="n">${u.name}</span><br><span class="q">${u.qty}${u.kind==='nonsi'?'（係数は別）':''}</span></span></button>`).join('');
+  else if(!matches.length) ml.innerHTML=`<p class="rq">${T('noMatch')}</p>`;
+  else ml.innerHTML = `<p class="rq">${T('matchTitle')}</p>` + matches.map(u=>`<button class="match" data-open="${u.id}"><span class="u">${uSym(u)}</span><span><span class="n">${uName(u)}</span><br><span class="q">${uQty(u)}${u.kind==='nonsi'?T('coefAside'):''}</span></span></button>`).join('');
   // お題
   const v=document.getElementById('verdict');
   if(goalId && has){
     const g=byId[goalId];
     if(dimKey(dimOf(g))===key){
-      v.hidden=false; v.className='verdict ok'; v.innerHTML=`できた！ <span class="u">${g.sym}</span> = ${fmtDim(d)}`;
+      v.hidden=false; v.className='verdict ok'; v.innerHTML=T('goalOk')(uSym(g),fmtDim(d));
       goalsDone.add(goalId); renderGoals();
-    } else { v.hidden=false; v.className='verdict ng'; v.innerHTML=`まだ <span class="u">${g.sym}</span> ではありません。目標は ${fmtDim(dimOf(g))}`; }
+    } else { v.hidden=false; v.className='verdict ng'; v.innerHTML=T('goalNg')(uSym(g),fmtDim(dimOf(g))); }
   } else v.hidden=true;
 }
 numSlot.addEventListener('click',onPiece); denSlot.addEventListener('click',onPiece);
@@ -726,10 +892,37 @@ function onPiece(e){
 document.getElementById('matches').addEventListener('click',e=>{ const m=e.target.closest('[data-open]'); if(m){ showView('index'); selectUnit(m.dataset.open); } });
 const GOALS=['N','J','W','Pa','C','V','ohm','F','T','Wb','H','Hz','Gy','kg_m3'];
 function renderGoals(){
-  document.getElementById('goals').innerHTML = GOALS.map(id=>`<button data-goal="${id}" aria-pressed="${goalId===id}" class="${goalsDone.has(id)?'done':''}"><span class="u">${byId[id].sym}</span>${goalsDone.has(id)?' ✓':''}</button>`).join('');
+  document.getElementById('goals').innerHTML = GOALS.map(id=>`<button data-goal="${id}" aria-pressed="${goalId===id}" class="${goalsDone.has(id)?'done':''}"><span class="u">${uSym(byId[id])}</span>${goalsDone.has(id)?' ✓':''}</button>`).join('');
 }
 document.getElementById('goals').addEventListener('click',e=>{ const b=e.target.closest('[data-goal]'); if(!b) return; goalId = goalId===b.dataset.goal? null : b.dataset.goal; renderGoals(); renderBuilder(); });
 setMode('num'); renderPalette(); renderGoals(); renderBuilder();
+
+/* ===== 言語切り替え ===== */
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.title = T('title');
+  const set=(id,v)=>{const el=document.getElementById(id); if(el) el.innerHTML=v;};
+  set('appTitle',T('title')); set('appSub',T('sub'));
+  document.querySelectorAll('nav.tabs button').forEach(b=>{ b.textContent = T(b.dataset.view==='index'?'tabIndex':b.dataset.view==='builder'?'tabBuild':'tabQuiz'); });
+  document.getElementById('q').placeholder=T('searchPh');
+  document.getElementById('bq').placeholder=T('bSearchPh');
+  document.querySelectorAll('#subjChips .chip').forEach(c=>c.textContent=uSubj(c.dataset.s));
+  set('prefixSummary',T('prefixes')); set('hintText',T('hint'));
+  set('bLead',T('bLead')); set('bTitle',T('bTitle')); set('bSub',T('bSub'));
+  set('addToLabel',T('addTo')); set('modeNum',T('mul')); set('modeDen',T('div')); set('clearBtn',T('clear'));
+  set('numLabel',T('num')); set('denLabel',T('den')); set('rqLabel',T('inSIShort')); set('goalTitle',T('goalTitle')); set('creditBy',T('credit'));
+  document.getElementById('themeBtn').setAttribute('aria-label',T('themeLabel'));
+  document.querySelectorAll('#langSw button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));
+  renderPrefix(); renderIndex(); renderPalette(); renderGoals(); renderBuilder();
+  if(selectedId && detail.classList.contains('open')) selectUnit(selectedId,true);
+  else detail.innerHTML=`<div class="hint"><span class="u">N = kg·m/s<sup>2</sup></span><span id="hintText">${T('hint')}</span></div>`;
+  quizStarted=false; renderQuizSetup();
+}
+document.getElementById('langSw').addEventListener('click',e=>{
+  const b=e.target.closest('[data-lang]'); if(!b || b.dataset.lang===LANG) return;
+  LANG=b.dataset.lang; try{ localStorage.setItem('unitmap-lang',LANG); }catch(e){}
+  applyLang();
+});
 
 /* ===== クイズ ===== */
 const quizBox=document.getElementById('quizBox');
@@ -748,56 +941,56 @@ function makeQuestions(n){
       let others=pick(UNITS.filter(v=>okv(v) && v.field===u.field),3);
       if(others.length<3) others=others.concat(pick(UNITS.filter(v=>okv(v) && !others.includes(v) && v.subj[0]===u.subj[0]),3-others.length));
       if(others.length<3) others=others.concat(pick(UNITS.filter(v=>okv(v) && !others.includes(v)),3-others.length));
-      out.push({type:'記号を選ぶ',text:`「${u.name}」（${u.qty}）の記号は？`,opts:shuffle([u,...others]).map(v=>({html:`<span class="u">${v.sym}</span>`,ok:v===u})),
-        expl:`<b><span class="u">${u.sym}</span> ${u.name}</b>：${u.note}`});
+      out.push({type:T('qtSym'),text:T('qSymQ')(uName(u),uQty(u)),opts:shuffle([u,...others]).map(v=>({html:`<span class="u">${uSym(v)}</span>`,ok:v===u})),
+        expl:`<b><span class="u">${uSym(u)}</span> ${uName(u)}</b> — ${uNote(u)}`});
     } else if(type==='build'){
       const cands=named.filter(u=>u.forms && Object.keys(dimOf(u)).length); if(!cands.length) continue;
       const u=pick(cands,1)[0]; const key=dimKey(dimOf(u));
       const wrong=[]; const seen=new Set([key]);
       for(const v of shuffle(UNITS.filter(v=>v.forms))){ const k=dimKey(dimOf(v)); if(seen.has(k)) continue; seen.add(k); wrong.push(v); if(wrong.length===3) break; }
       if(wrong.length<3) continue;
-      out.push({type:'組み立て方を選ぶ',text:`<span class="u">${u.sym}</span>（${u.qty}）を基本単位で表すと？`,
+      out.push({type:T('qtBuild'),text:T('qBuildQ')(uSym(u),uQty(u)),
         opts:shuffle([u,...wrong]).map(v=>({html:fmtDim(dimOf(v)),ok:v===u})),
-        expl:`<b><span class="u">${u.sym}</span> = ${fmtForm(u.forms[0],false)}</b>　${u.note}`});
+        expl:`<b><span class="u">${uSym(u)}</span> = ${fmtForm(u.forms[0],false)}</b>　${uNote(u)}`});
     } else {
       const cands=named.filter(u=>u.forms && u.forms.some(f=>f.length===2 && f.every(([,e])=>Math.abs(e)===1)));
       if(!cands.length) continue;
       const u=pick(cands,1)[0]; const f=u.forms.find(f=>f.length===2 && f.every(([,e])=>Math.abs(e)===1));
       const [[a,ea],[b,eb]]=f; let text;
-      if(ea>0&&eb>0) text=`<span class="u">${byId[a].sym}</span> × <span class="u">${byId[b].sym}</span> はどの単位？`;
-      else if(ea>0) text=`<span class="u">${byId[a].sym}</span> ÷ <span class="u">${byId[b].sym}</span> はどの単位？`;
-      else text=`<span class="u">${byId[b].sym}</span> ÷ <span class="u">${byId[a].sym}</span> はどの単位？`;
+      if(ea>0&&eb>0) text=T('qMulQ')(uSym(byId[a]),uSym(byId[b]));
+      else if(ea>0) text=T('qDivQ')(uSym(byId[a]),uSym(byId[b]));
+      else text=T('qDivQ')(uSym(byId[b]),uSym(byId[a]));
       const key=dimKey(dimOf(u)); const others=pick(named.filter(v=>dimKey(dimOf(v))!==key && v.id!==a && v.id!==b),3);
       if(others.length<3) continue;
-      out.push({type:'かけ算・わり算',text,opts:shuffle([u,...others]).map(v=>({html:`<span class="u">${v.sym}</span>　<small style="color:var(--ink-3)">${v.qty}</small>`,ok:v===u})),
-        expl:`<b><span class="u">${u.sym}</span> = ${fmtForm(f,false)}</b>　${u.note}`});
+      out.push({type:T('qtCombine'),text,opts:shuffle([u,...others]).map(v=>({html:`<span class="u">${uSym(v)}</span>　<small style="color:var(--ink-3)">${uQty(v)}</small>`,ok:v===u})),
+        expl:`<b><span class="u">${uSym(u)}</span> = ${fmtForm(f,false)}</b>　${uNote(u)}`});
     }
   }
   return out;
 }
 function renderQuizSetup(){
   let best=null; try{ best=localStorage.getItem('unitmap-best'); }catch(e){}
-  quizBox.innerHTML=`<div class="qsetup"><h2 style="margin:0;font-size:18px">単位クイズ</h2><p>10 問。記号・組み立て方・かけ算わり算の 3 種類が混ざって出ます。</p>
-    <div class="chips" id="qsubj">${SUBJ.map(s=>`<button class="chip subj" data-s="${s}" aria-pressed="${quizSubj.has(s)}">${s}</button>`).join('')}</div>
-    <p style="font-size:12px;color:var(--ink-3)">教科を選ばなければ全範囲から出題します。</p>
-    <button class="btn" id="startQuiz">はじめる</button>
-    ${best?`<p class="best">これまでの最高：${best} / 10</p>`:''}</div>`;
+  quizBox.innerHTML=`<div class="qsetup"><h2 style="margin:0;font-size:18px">${T('qTitle')}</h2><p>${T('qLead')}</p>
+    <div class="chips" id="qsubj">${SUBJ.map(s=>`<button class="chip subj" data-s="${s}" aria-pressed="${quizSubj.has(s)}">${uSubj(s)}</button>`).join('')}</div>
+    <p style="font-size:12px;color:var(--ink-3)">${T('qSubjNote')}</p>
+    <button class="btn" id="startQuiz">${T('qStart')}</button>
+    ${best?`<p class="best">${T('qBest')(best)}</p>`:''}</div>`;
   quizBox.querySelectorAll('#qsubj .chip').forEach(c=>c.addEventListener('click',()=>{ const s=c.dataset.s; quizSubj.has(s)?quizSubj.delete(s):quizSubj.add(s); c.setAttribute('aria-pressed',quizSubj.has(s)); }));
   document.getElementById('startQuiz').addEventListener('click',()=>{ qs=makeQuestions(10); qi=0; score=0; quizStarted=true; renderQuestion(); });
 }
 function renderQuestion(){
   if(qi>=qs.length){ return renderResult(); }
   const q=qs[qi];
-  quizBox.innerHTML=`<div class="qhead"><span>第 ${qi+1} 問 / ${qs.length}</span><span>正解 ${score}</span></div>
+  quizBox.innerHTML=`<div class="qhead"><span>${T('qNum')(qi+1,qs.length)}</span><span>${T('qScore')(score)}</span></div>
     <div class="qtype">${q.type}</div><div class="qtext">${q.text}</div>
     <div class="opts">${q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="k">${'ABCD'[i]}</span><span>${o.html}</span></button>`).join('')}</div>
     <div class="expl" id="expl"></div>
-    <div class="qfoot"><button class="btn ghost" id="quitQuiz">やめる</button><button class="btn" id="nextQ" disabled>${qi+1===qs.length?'結果を見る':'次へ'}</button></div>`;
+    <div class="qfoot"><button class="btn ghost" id="quitQuiz">${T('qQuit')}</button><button class="btn" id="nextQ" disabled>${qi+1===qs.length?T('qSeeResult'):T('qNext')}</button></div>`;
   quizBox.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
     const i=+b.dataset.i; const ok=q.opts[i].ok; if(ok) score++;
     quizBox.querySelectorAll('.opt').forEach((x,j)=>{ x.disabled=true; if(q.opts[j].ok) x.classList.add('right'); else if(j===i) x.classList.add('wrong'); });
-    const ex=document.getElementById('expl'); ex.innerHTML=(ok?'正解。':'惜しい。')+' '+q.expl; ex.classList.add('on');
-    document.querySelector('.qhead span:last-child').textContent=`正解 ${score}`;
+    const ex=document.getElementById('expl'); ex.innerHTML=(ok?T('qCorrect'):T('qWrong'))+' '+q.expl; ex.classList.add('on');
+    document.querySelector('.qhead span:last-child').textContent=T('qScore')(score);
     document.getElementById('nextQ').disabled=false;
   }));
   document.getElementById('nextQ').addEventListener('click',()=>{ qi++; renderQuestion(); });
@@ -805,12 +998,14 @@ function renderQuestion(){
 }
 function renderResult(){
   let best=0; try{ best=+localStorage.getItem('unitmap-best')||0; if(score>best){ best=score; localStorage.setItem('unitmap-best',score); } }catch(e){}
-  const msg = score===10?'全問正解。単位のつながりが見えています。':score>=7?'いい調子。間違えた単位を「単位表」でもう一度たどってみよう。':'まず「くみたてる」で N・J・W・V をつくってみると、つながりが見えてきます。';
-  quizBox.innerHTML=`<div class="qsetup"><p style="margin:0">結果</p><div class="score">${score} <span style="font-size:20px;color:var(--ink-3)">/ 10</span></div><p>${msg}</p><p class="best">最高：${best} / 10</p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><button class="btn" id="again">もう一度</button><button class="btn ghost" id="toIndex">単位表へ</button></div></div>`;
+  const msg = T('qMsg')[score===10?2:score>=7?1:0];
+  quizBox.innerHTML=`<div class="qsetup"><p style="margin:0">${T('qResult')}</p><div class="score">${score} <span style="font-size:20px;color:var(--ink-3)">/ 10</span></div><p>${msg}</p><p class="best">${T('qBestShort')(best)}</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px"><button class="btn" id="again">${T('qAgain')}</button><button class="btn ghost" id="toIndex">${T('qToIndex')}</button></div></div>`;
   document.getElementById('again').addEventListener('click',()=>{ qs=makeQuestions(10); qi=0; score=0; renderQuestion(); });
   document.getElementById('toIndex').addEventListener('click',()=>{ quizStarted=false; showView('index'); });
 }
+
+applyLang();
 </script>
 </body>
 </html>
