@@ -1,6 +1,8 @@
 # 単位のつながり帳
 
-高校理科（物理・化学・生物・地学）で登場する単位を、**記号だけでなく単位どうしの関係として**つかむためのWebアプリです。単一のHTMLファイルで動きます。
+高校理科（物理・化学・生物・地学）で登場する単位を、**記号だけでなく単位どうしの関係として**つかむためのWebアプリです。単一のHTMLファイルで動きます。画面右上のボタンで**日本語／English**を切り替えられます。
+
+*English: see [below](#english).*
 
 👉 **[https://unit.meetupsensei.com/](https://unit.meetupsensei.com/)**
 
@@ -91,8 +93,10 @@
 - HTML・CSS・JavaScript の単一ファイル。ビルド不要、フレームワーク不要
 - 外部依存は Google Fonts のみ（読み込めない環境でもシステムフォントで動作します）
 - 単位の次元は、定義された組み立て方から**再帰的に自動計算**しています。`N` の定義を書けば `Pa = N/m²` の次元も自動で決まります
+- 日本語／英語の切り替えに対応（選んだ言語はブラウザに保存されます）。単位名・量・メモ・クイズまで英語になります
 - ライト／ダークの両方に対応。スマホでは詳細がボトムシートで開きます
 - データはコード内の `UNITS` 配列にまとまっています。単位を増やすときはここに1行足すだけです
+- 英語の表記は `EN` オブジェクト（単位ごとの名前・量・メモ）と `UI.en`（画面の文言）にまとまっています
 
 ### 単位を追加する
 
@@ -113,6 +117,13 @@
 
 `forms` を書けば次元は自動計算されます。SI以外の単位で係数だけが違うもの（cal, eV など）は `forms` の代わりに `dim` と `conv` を書きます。
 
+英語版にも表示するときは、`EN` に同じ `id` で1行足します（書かなければ日本語のまま表示されます）。
+
+```js
+J_K:{name:'joule per kelvin', qty:'heat capacity', note:'The heat needed to raise the whole object by 1 K.'},
+// 記号や換算を英語用に変えたいときは sym / conv も書けます
+```
+
 ---
 
 ## 公開の手順
@@ -127,8 +138,22 @@
 
 [MIT License](LICENSE)
 
-授業でそのまま使う、自校向けに単位を足す、コードを参考に別のツールをつくる、といった利用を自由にどうぞ。改変・再配布の際は、著作権表示とライセンス文（`LICENSE`）を残してください。
+授業でそのまま使う、自校向けに単位を足す、コードを参考に別のツールをつくる、といった利用を自由にどうぞ。コードをコピー・改変して配布・公開するときは、著作権表示とライセンス文（`LICENSE`）を残してください。公開中のページをそのまま授業で使うだけなら、手続きは不要です。
 
 ## つくった人
 
 のざたん
+
+---
+
+## English
+
+**Unit Connections** is a single-file web app for high school science (physics, chemistry, biology, earth science). It shows each unit not just as a symbol, but as part of a network: what it is made of, and what it helps to make.
+
+👉 **[https://unit.meetupsensei.com/](https://unit.meetupsensei.com/)** — switch to English with the button at the top right.
+
+- **Units** — 87 units grouped by field. Pick one to see how it is built, its SI base units and dimensions, units with the same dimensions, related formulas and notes. Every unit in a formula is tappable, so you can follow N → J → W → V → Ω.
+- **Build** — multiply and divide units to see the result in SI base units and which named unit it matches. Challenges ask you to build N, J, W, V, Ω and more.
+- **Quiz** — 10 multiple-choice questions on symbols, SI base units, and multiplying/dividing units, filterable by subject.
+
+No build step, no framework, no login. Released under the [MIT License](LICENSE). Made by Nozatan ([meetupsensei.com](https://meetupsensei.com)).
